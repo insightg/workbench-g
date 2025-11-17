@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  tmux-web-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DEPLOYMENT_MODE: remote
+    container_name: tmux-web-manager
+    hostname: bee
+    restart: unless-stopped
+    volumes:
+      - /tmp:/tmp
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/group:/etc/group:ro
+      - /tmp/custom-hosts:/etc/hosts:ro
+      - /home:/home:ro
+      - ./data:/app/data
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./app.py:/app/app.py
+    environment:
+      - DEPLOYMENT_MODE=remote
+    privileged: true
+    networks:
+      - npm-network
+
+networks:
+  npm-network:
+    external: true

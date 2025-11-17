@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  tmux-web-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DEPLOYMENT_MODE: local
+    container_name: tmux-web-manager-local
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /tmp:/tmp
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
+      - /etc/group:/etc/group:ro
+    environment:
+      - DEPLOYMENT_MODE=local
+    privileged: true
