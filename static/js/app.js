@@ -8,6 +8,7 @@ let sessions = [];
 let selectedHostId = null; // Will be set to first available host
 let lastActiveSessionByHost = {}; // Track last active session per host: {hostId: {sessionName, hostId}}
 let zoomLevel = 1.0; // 100% = 1.0
+let currentTheme = 'dark'; // default theme
 
 // Mappa delle sessioni attive: "host_id:session_name" -> {terminal_id, iframe}
 let activeTerminals = {};
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
+    initTheme();
     loadSessions();
     setupSocketListeners();
     updateZoomDisplay();
@@ -47,6 +49,11 @@ function setupEventListeners() {
 
     document.getElementById('zoom-reset-btn').addEventListener('click', () => {
         resetZoom();
+    });
+
+    // Theme toggle
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+        toggleTheme();
     });
 }
 
@@ -98,6 +105,59 @@ function updateZoomDisplay() {
     const zoomDisplay = document.getElementById('zoom-level');
     if (zoomDisplay) {
         zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+    }
+}
+
+// Theme Management
+function initTheme() {
+    // Check localStorage first
+    const savedTheme = localStorage.getItem('workbench-theme');
+
+    // If no saved theme, check system preference
+    if (!savedTheme) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        currentTheme = prefersDark ? 'dark' : 'light';
+    } else {
+        currentTheme = savedTheme;
+    }
+
+    applyTheme(currentTheme);
+
+    // Listen for system theme changes (only if user hasn't set a preference)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('workbench-theme')) {
+            currentTheme = e.matches ? 'dark' : 'light';
+            applyTheme(currentTheme);
+        }
+    });
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(currentTheme);
+    localStorage.setItem('workbench-theme', currentTheme);
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeIcon(theme);
+}
+
+function updateThemeIcon(theme) {
+    const sunIcon = document.getElementById('theme-icon-sun');
+    const moonIcon = document.getElementById('theme-icon-moon');
+
+    // Check if icons exist (they might not be present on login page)
+    if (!sunIcon || !moonIcon) {
+        return;
+    }
+
+    if (theme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
     }
 }
 
